@@ -1,0 +1,28 @@
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+
+import "./globals.css";
+import { Providers } from "./providers";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+
+export const metadata: Metadata = {
+  title: "HeatWatch Nigeria",
+  description: "Live heat conditions across Nigerian cities.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={inter.variable}>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}

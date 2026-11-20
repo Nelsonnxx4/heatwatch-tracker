@@ -1,6 +1,6 @@
 # HeatWatch Nigeria
 
-Heat monitoring for Nigerian cities: a FastAPI service that ingests hourly weather data, computes heat-index metrics, and serves them through an authenticated REST API (dashboard coming next).
+Heat monitoring for Nigerian cities: a FastAPI service that ingests hourly weather data, computes heat-index metrics, and serves them through an authenticated REST API and a Next.js + MapLibre GL dashboard.
 
 ## Architecture
 
@@ -22,6 +22,17 @@ curl -H "X-API-Key: dev-key" http://localhost:8000/rankings/hottest
 ```
 
 Interactive docs: http://localhost:8000/docs
+
+## Dashboard
+
+```bash
+cd frontend
+cp .env.example .env.local   # server-side only: API URL and key
+npm install
+npm run dev                  # http://localhost:3000
+```
+
+The browser never sees the API key. Requests go through a small Next.js proxy (`src/app/api/[...path]/route.ts`) that attaches it server-side and only forwards the read-only routes below. Basemaps come from CARTO's free vector styles, so check their terms before using the demo commercially.
 
 ## API
 
@@ -51,7 +62,7 @@ Tests run against in-memory SQLite, so no database is needed.
 ## Roadmap
 
 - [x] Ingestion pipeline, heat metrics, authenticated API, tests, Docker, CI
-- [ ] Dashboard: Next.js + Leaflet map + trend charts
+- [x] Dashboard: Next.js + MapLibre GL map + ECharts trend chart
 - [ ] Redis caching on ranking and summary endpoints
 - [ ] Alembic migrations
 - [ ] Historical backfill (Open-Meteo archive) for a real climate baseline
