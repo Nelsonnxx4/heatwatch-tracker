@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: heatwatch
+      POSTGRES_PASSWORD: heatwatch
+      POSTGRES_DB: heatwatch
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heatwatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://heatwatch:heatwatch@db:5432/heatwatch
+      API_KEYS: ${API_KEYS:-dev-key}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # One-shot job: docker compose run --rm ingest
+  ingest:
+    build: ./backend
+    command: ["python", "-m", "app.ingestion.run"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://heatwatch:heatwatch@db:5432/heatwatch
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["tools"]
+
+volumes:
+  pgdata:
