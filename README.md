@@ -9,7 +9,7 @@ flowchart LR
   OM[Open-Meteo API] -->|hourly| ING[Ingestion job<br/>httpx + pandas]
   ING --> DB[(PostgreSQL)]
   DB --> API[FastAPI<br/>async + Pydantic]
-  API -->|X-API-Key| DASH[Dashboard<br/>Next.js + Leaflet]
+  API -->|X-API-Key| DASH[Dashboard<br/>Next.js + MapLibre GL]
 ```
 
 ## Quick start
@@ -59,6 +59,13 @@ pytest
 
 Tests run against in-memory SQLite, so no database is needed.
 
+## Deploy on AWS EC2
+
+The production deployment runs Caddy, Next.js, FastAPI, PostgreSQL, and hourly
+weather ingestion as a private Docker Compose stack. Only Caddy publishes ports
+80 and 443. See [`deploy/README.md`](deploy/README.md) for the EC2, HTTPS,
+secrets, persistence, backup, and update instructions.
+
 ## Roadmap
 
 - [x] Ingestion pipeline, heat metrics, authenticated API, tests, Docker, CI
@@ -66,4 +73,5 @@ Tests run against in-memory SQLite, so no database is needed.
 - [ ] Redis caching on ranking and summary endpoints
 - [ ] Alembic migrations
 - [ ] Historical backfill (Open-Meteo archive) for a real climate baseline
-- [ ] Deployment on AWS (S3 + CloudFront, EventBridge + Lambda, EC2/App Runner)
+- [x] Single-instance AWS EC2 deployment package
+- [ ] Managed multi-instance deployment with ECS and RDS

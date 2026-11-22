@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import { HEAT_LEVELS, formatDegrees } from "@/lib/heat";
 import type { RankingItem } from "@/lib/types";
 
@@ -7,7 +9,7 @@ interface Props {
   onSelect: (slug: string) => void;
 }
 
-export function RankingList({ items, selected, onSelect }: Props) {
+export const RankingList = memo(function RankingList({ items, selected, onSelect }: Props) {
   return (
     <ul className="ranking">
       {items.map(({ city, heat_index_max_c, heat_category }, index) => {
@@ -35,4 +37,4 @@ export function RankingList({ items, selected, onSelect }: Props) {
       })}
     </ul>
   );
-}
+});

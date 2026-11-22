@@ -2,7 +2,9 @@ __pycache__/
 *.pyc
 .venv/
 .env
+.env.production
 .pytest_cache/
 *.db
 node_modules/
 .next/
+deploy/data/

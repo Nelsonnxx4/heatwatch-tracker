@@ -1,28 +1,38 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { useRankings } from "@/lib/queries";
 
 import { CityPanel } from "./CityPanel";
-import { MapView } from "./MapView";
 import { RankingList } from "./RankingList";
+import { MapSkeleton, RankingListSkeleton } from "./Skeletons";
 import { StateMessage } from "./StateMessage";
+
+const MapView = dynamic(
+  () => import("./MapView").then((module) => module.MapView),
+  { ssr: false, loading: MapSkeleton },
+);
 
 export function Dashboard() {
   const { data, isPending, isError, refetch } = useRankings();
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
 
   const items = useMemo(() => data ?? [], [data]);
   const visibleItems = useMemo(() => {
-    const term = query.trim().toLocaleLowerCase();
+    const term = deferredQuery.trim().toLocaleLowerCase();
     if (!term) return items;
     return items.filter(({ city }) =>
       `${city.name} ${city.state} ${city.country}`.toLocaleLowerCase().includes(term),
     );
-  }, [items, query]);
-  const selectedCity = items.find((item) => item.city.slug === selected)?.city ?? null;
+  }, [deferredQuery, items]);
+  const selectedCity = useMemo(
+    () => items.find((item) => item.city.slug === selected)?.city ?? null,
+    [items, selected],
+  );
 
   useEffect(() => {
     const syncSelectionFromUrl = () => {
@@ -95,13 +105,7 @@ export function Dashboard() {
           </label>
         )}
 
-        {isPending && (
-          <div className="skeleton-list" aria-busy="true" aria-label="Loading city rankings">
-            {Array.from({ length: 6 }, (_, index) => (
-              <div key={index} className="skeleton" />
-            ))}
-          </div>
-        )}
+        {isPending && <RankingListSkeleton />}
         {isError && (
           <StateMessage
             title="Can't reach the API"

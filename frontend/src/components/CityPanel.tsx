@@ -1,3 +1,5 @@
+import dynamic from "next/dynamic";
+
 import {
   HEAT_LEVELS,
   formatDegrees,
@@ -10,7 +12,12 @@ import type { City, HeatSummary } from "@/lib/types";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { StateMessage } from "./StateMessage";
-import { TrendChart } from "./TrendChart";
+import { ChartSkeleton, ConditionsSkeleton } from "./Skeletons";
+
+const TrendChart = dynamic(
+  () => import("./TrendChart").then((module) => module.TrendChart),
+  { ssr: false, loading: ChartSkeleton },
+);
 
 interface Props {
   city: City;
@@ -104,13 +111,10 @@ export function CityPanel({ city, onClose }: Props) {
       ) : summary.data ? (
         <Conditions summary={summary.data} />
       ) : (
-        <div aria-busy="true">
-          <div className="skeleton" style={{ height: 72, margin: "20px 0 0" }} />
-          <div className="skeleton" style={{ margin: "12px 0 0" }} />
-        </div>
+        <ConditionsSkeleton />
       )}
 
-      {trend.data && trend.data.length > 0 && (
+      {!trend.isError && (trend.isPending || (trend.data && trend.data.length > 0)) && (
         <section className="trend">
           <div className="trend__header">
             <div>
@@ -122,8 +126,20 @@ export function CityPanel({ city, onClose }: Props) {
               <span><i className="trend__legend-muted" /> Temperature</span>
             </div>
           </div>
-          <TrendChart observations={trend.data} accent={accent} scheme={scheme} />
+          {trend.data && trend.data.length > 0 ? (
+            <TrendChart observations={trend.data} accent={accent} scheme={scheme} />
+          ) : (
+            <ChartSkeleton />
+          )}
         </section>
+      )}
+      {trend.isError && (
+        <StateMessage
+          title="Can't load the trend"
+          body="The latest conditions are available, but the 72-hour history didn't load."
+          actionLabel="Try again"
+          onAction={() => void trend.refetch()}
+        />
       )}
     </section>
   );

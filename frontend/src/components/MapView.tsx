@@ -2,12 +2,14 @@
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapGL, { Marker, NavigationControl, type MapRef } from "react-map-gl/maplibre";
 
 import { HEAT_LEVELS, markerSize } from "@/lib/heat";
 import type { RankingItem } from "@/lib/types";
 import { prefersReducedMotion, useColorScheme } from "@/lib/useColorScheme";
+
+import { MapSkeleton } from "./Skeletons";
 
 const BASEMAPS = {
   light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
@@ -27,6 +29,7 @@ interface Props {
 export function MapView({ items, selected, onSelect }: Props) {
   const scheme = useColorScheme();
   const mapRef = useRef<MapRef>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const selectedCity = useMemo(
     () => items.find((item) => item.city.slug === selected)?.city ?? null,
@@ -37,14 +40,22 @@ export function MapView({ items, selected, onSelect }: Props) {
     const map = mapRef.current;
     if (!map || items.length === 0) return;
 
-    const longitudes = items.map(({ city }) => city.longitude);
-    const latitudes = items.map(({ city }) => city.latitude);
+    let minLongitude = Infinity;
+    let minLatitude = Infinity;
+    let maxLongitude = -Infinity;
+    let maxLatitude = -Infinity;
+    for (const { city } of items) {
+      minLongitude = Math.min(minLongitude, city.longitude);
+      minLatitude = Math.min(minLatitude, city.latitude);
+      maxLongitude = Math.max(maxLongitude, city.longitude);
+      maxLatitude = Math.max(maxLatitude, city.latitude);
+    }
     const compact = window.innerWidth <= 900;
 
     map.fitBounds(
       [
-        [Math.min(...longitudes), Math.min(...latitudes)],
-        [Math.max(...longitudes), Math.max(...latitudes)],
+        [minLongitude, minLatitude],
+        [maxLongitude, maxLatitude],
       ],
       {
         padding: compact
@@ -73,12 +84,16 @@ export function MapView({ items, selected, onSelect }: Props) {
 
   return (
     <div className="map">
+      {!isLoaded && <MapSkeleton />}
       <MapGL
         ref={mapRef}
         initialViewState={WORLD_VIEW}
         mapStyle={BASEMAPS[scheme]}
         attributionControl={{ compact: true }}
-        onLoad={fitOverview}
+        onLoad={() => {
+          setIsLoaded(true);
+          fitOverview();
+        }}
         style={{ width: "100%", height: "100%" }}
       >
         <NavigationControl position="bottom-right" showCompass={false} />
