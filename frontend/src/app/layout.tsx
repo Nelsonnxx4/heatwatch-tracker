@@ -1,14 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 
 import "./globals.css";
 import { Providers } from "./providers";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-
 export const metadata: Metadata = {
-  title: "HeatWatch Nigeria",
-  description: "Live heat conditions across Nigerian cities.",
+  title: "HeatWatch Global",
+  description: "Live heat, humidity, and wind conditions across major world cities.",
 };
 
 export const viewport: Viewport = {
@@ -19,7 +16,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en">
       <body>
         <Providers>{children}</Providers>
       </body>

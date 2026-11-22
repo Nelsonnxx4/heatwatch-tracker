@@ -1,8 +1,3 @@
-"""Ingestion job: python -m app.ingestion.run
-
-Pulls recent hourly data for every city and stores new rows. Run it on a schedule
-(cron, EventBridge + Lambda/ECS, GitHub Actions) every hour or so.
-"""
 import asyncio
 import logging
 from datetime import UTC, datetime
@@ -11,33 +6,59 @@ import httpx
 from sqlalchemy import select
 
 from app import models  # noqa: F401
-from app.db import Base, SessionLocal, engine
+from app.db import Base, SessionLocal, engine, ensure_schema
 from app.ingestion.open_meteo import fetch_hourly, parse_hourly
 from app.ingestion.store import store_observations
 from app.models import City
 from app.seed import seed_cities
 
 logger = logging.getLogger("ingestion")
+FETCH_CONCURRENCY = 6
+
+
+async def fetch_city_weather(
+    client: httpx.AsyncClient,
+    semaphore: asyncio.Semaphore,
+    city: tuple[int, str, float, float],
+) -> tuple[tuple[int, str, float, float], dict | None]:
+    _, slug, latitude, longitude = city
+    try:
+        async with semaphore:
+            payload = await fetch_hourly(client, latitude, longitude)
+        return city, payload
+    except Exception:
+        logger.exception("Weather fetch failed for %s", slug)
+        return city, None
 
 
 async def main() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await ensure_schema(conn)
 
     async with SessionLocal() as session:
         await seed_cities(session)
-        cities = (await session.scalars(select(City))).all()
+        cities = [
+            (city.id, city.slug, city.latitude, city.longitude)
+            for city in (await session.scalars(select(City))).all()
+        ]
 
+        semaphore = asyncio.Semaphore(FETCH_CONCURRENCY)
         async with httpx.AsyncClient(timeout=20) as client:
-            for city in cities:
+            results = await asyncio.gather(
+                *(fetch_city_weather(client, semaphore, city) for city in cities)
+            )
+
+            for (city_id, slug, _, _), payload in results:
+                if payload is None:
+                    continue
                 try:
-                    payload = await fetch_hourly(client, city.latitude, city.longitude)
                     now = datetime.now(UTC).replace(tzinfo=None)
                     rows = parse_hourly(payload, until=now)
-                    added = await store_observations(session, city.id, rows)
-                    logger.info("%s: %s new rows", city.slug, added)
+                    added = await store_observations(session, city_id, rows)
+                    logger.info("%s: %s new rows", slug, added)
                 except Exception:
-                    logger.exception("Ingestion failed for %s", city.slug)
+                    logger.exception("Ingestion failed for %s", slug)
                     await session.rollback()
 
     await engine.dispose()

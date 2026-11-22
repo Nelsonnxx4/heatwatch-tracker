@@ -13,13 +13,12 @@ class City(Base):
     slug: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(128))
     state: Mapped[str] = mapped_column(String(64))
+    country: Mapped[str] = mapped_column(String(64), default="Nigeria")
     latitude: Mapped[float]
     longitude: Mapped[float]
 
 
 class Observation(Base):
-    """One hourly reading. `observed_at` is stored as naive UTC."""
-
     __tablename__ = "observations"
     __table_args__ = (UniqueConstraint("city_id", "observed_at", name="uq_city_time"),)
 
@@ -28,3 +27,5 @@ class Observation(Base):
     observed_at: Mapped[datetime] = mapped_column(index=True)
     temperature_c: Mapped[float]
     humidity_pct: Mapped[float | None]
+    wind_speed_kmh: Mapped[float | None]
+    wind_direction_deg: Mapped[float | None]

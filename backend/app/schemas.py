@@ -10,6 +10,7 @@ class CityOut(BaseModel):
     slug: str
     name: str
     state: str
+    country: str
     latitude: float
     longitude: float
 
@@ -18,6 +19,8 @@ class ObservationOut(BaseModel):
     observed_at: dt.datetime
     temperature_c: float
     humidity_pct: float | None
+    wind_speed_kmh: float | None
+    wind_direction_deg: float | None
     heat_index_c: float
     heat_category: str
 
@@ -34,8 +37,6 @@ class HeatSummaryOut(BaseModel):
     city: CityOut
     current: ObservationOut
     days: list[DailyOut]
-    # Latest daily mean minus the mean of earlier days in the window.
-    # None until there are enough days to compare against.
     anomaly_c: float | None
 
 

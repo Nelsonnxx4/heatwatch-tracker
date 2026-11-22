@@ -7,7 +7,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "postgresql+asyncpg://heatwatch:heatwatch@localhost:5432/heatwatch"
-    # Comma-separated list of accepted API keys (send as the X-API-Key header)
     api_keys: str = "dev-key"
     cors_origins: str = "http://localhost:3000"
     open_meteo_url: str = "https://api.open-meteo.com/v1/forecast"

@@ -30,7 +30,7 @@ function buildOption(
     name,
     data,
     type: "line" as const,
-    smooth: true,
+    smooth: false,
     showSymbol: false,
     lineStyle: { width, color },
     itemStyle: { color },
@@ -38,11 +38,12 @@ function buildOption(
 
   return {
     animation: !prefersReducedMotion(),
-    grid: { left: 0, right: 4, top: 12, bottom: 0, containLabel: true },
+    grid: { left: 0, right: 6, top: 12, bottom: 0, containLabel: true },
     tooltip: {
       trigger: "axis",
       backgroundColor: colors.surface,
-      borderWidth: 0,
+      borderWidth: 1,
+      borderColor: colors.grid,
       textStyle: { color: colors.text, fontSize: 13 },
       valueFormatter: (value: unknown) => `${Number(value).toFixed(1)}°C`,
     },
@@ -55,6 +56,7 @@ function buildOption(
     yAxis: {
       type: "value",
       scale: true,
+      splitNumber: 4,
       splitLine: { lineStyle: { color: colors.grid } },
       axisLabel: { color: colors.muted, formatter: "{value}°" },
     },

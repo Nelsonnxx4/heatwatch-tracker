@@ -10,7 +10,6 @@ function subscribe(onChange: () => void): () => void {
   return () => media.removeEventListener("change", onChange);
 }
 
-/** Follows the OS appearance setting, like the rest of the UI. */
 export function useColorScheme(): ColorScheme {
   return useSyncExternalStore(
     subscribe,

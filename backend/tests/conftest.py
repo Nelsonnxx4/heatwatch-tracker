@@ -60,14 +60,37 @@ async def anon_client(session_factory):
 
 @pytest_asyncio.fixture
 async def seeded(session_factory):
-    """Makurdi is hot and humid, Lagos is milder, so Makurdi must rank first."""
     async with session_factory() as session:
-        makurdi = City(slug="makurdi", name="Makurdi", state="Benue", latitude=7.7337, longitude=8.5214)
-        lagos = City(slug="lagos", name="Lagos", state="Lagos", latitude=6.5244, longitude=3.3792)
+        makurdi = City(
+            slug="makurdi", name="Makurdi", state="Benue", country="Nigeria",
+            latitude=7.7337, longitude=8.5214,
+        )
+        lagos = City(
+            slug="lagos", name="Lagos", state="Lagos", country="Nigeria",
+            latitude=6.5244, longitude=3.3792,
+        )
         session.add_all([makurdi, lagos])
         await session.flush()
         for hour in range(72):
             stamp = BASE_TIME + timedelta(hours=hour)
-            session.add(Observation(city_id=makurdi.id, observed_at=stamp, temperature_c=36.0, humidity_pct=55.0))
-            session.add(Observation(city_id=lagos.id, observed_at=stamp, temperature_c=28.0, humidity_pct=60.0))
+            session.add(
+                Observation(
+                    city_id=makurdi.id,
+                    observed_at=stamp,
+                    temperature_c=36.0,
+                    humidity_pct=55.0,
+                    wind_speed_kmh=14.0,
+                    wind_direction_deg=220.0,
+                )
+            )
+            session.add(
+                Observation(
+                    city_id=lagos.id,
+                    observed_at=stamp,
+                    temperature_c=28.0,
+                    humidity_pct=60.0,
+                    wind_speed_kmh=18.0,
+                    wind_direction_deg=245.0,
+                )
+            )
         await session.commit()

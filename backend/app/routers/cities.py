@@ -33,6 +33,8 @@ def to_observation_out(obs: Observation) -> ObservationOut:
         observed_at=obs.observed_at,
         temperature_c=obs.temperature_c,
         humidity_pct=obs.humidity_pct,
+        wind_speed_kmh=obs.wind_speed_kmh,
+        wind_direction_deg=obs.wind_direction_deg,
         heat_index_c=hi,
         heat_category=heat_category(hi),
     )
@@ -52,7 +54,6 @@ async def city_temperature(
     limit: int = Query(default=168, ge=1, le=1000),
     session: AsyncSession = Depends(get_session),
 ):
-    """Hourly readings, oldest first. Without `from`/`to`, returns the latest `limit` hours."""
     city = await _get_city_or_404(session, slug)
     if start is not None and end is not None and start > end:
         raise HTTPException(status_code=422, detail="'from' must not be after 'to'")

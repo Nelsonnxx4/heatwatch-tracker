@@ -5,7 +5,6 @@ interface Props {
   onAction?: () => void;
 }
 
-/** Empty and error states: say what happened and what to do next. */
 export function StateMessage({ title, body, actionLabel, onAction }: Props) {
   return (
     <div className="message" role="status">

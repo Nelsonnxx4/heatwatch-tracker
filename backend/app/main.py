@@ -3,24 +3,24 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import models  # noqa: F401  (registers tables on Base.metadata)
+from app import models  # noqa: F401
 from app.config import get_settings
-from app.db import Base, engine
+from app.db import Base, engine, ensure_schema
 from app.routers import cities, rankings
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # MVP convenience. Swap for Alembic migrations before the schema starts changing.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await ensure_schema(conn)
     yield
     await engine.dispose()
 
 
 app = FastAPI(
-    title="HeatWatch Nigeria API",
-    description="Hourly temperature and heat-index data for Nigerian cities.",
+    title="HeatWatch Global API",
+    description="Hourly heat, humidity, and wind data for major world cities.",
     version="0.1.0",
     lifespan=lifespan,
 )

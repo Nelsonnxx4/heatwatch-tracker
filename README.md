@@ -1,6 +1,6 @@
-# HeatWatch Nigeria
+# HeatWatch Global
 
-Heat monitoring for Nigerian cities: a FastAPI service that ingests hourly weather data, computes heat-index metrics, and serves them through an authenticated REST API and a Next.js + MapLibre GL dashboard.
+Heat monitoring for major world cities, with expanded coverage across the United States and Europe. The FastAPI service ingests hourly temperature, humidity, wind speed and wind direction, computes heat-index metrics, and serves them through an authenticated REST API and a searchable Next.js + MapLibre GL dashboard.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ flowchart LR
 ```bash
 cp .env.example .env
 docker compose up --build -d
-docker compose run --rm ingest          # seeds cities, pulls the last 2 days
+docker compose run --rm ingest          # seeds the global city set and pulls recent weather
 curl -H "X-API-Key: dev-key" http://localhost:8000/rankings/hottest
 ```
 

@@ -17,10 +17,9 @@ router = APIRouter(prefix="/rankings", tags=["rankings"], dependencies=[Depends(
 @router.get("/hottest", response_model=list[RankingItem])
 async def hottest(
     hours: int = Query(default=24, ge=1, le=168),
-    limit: int = Query(default=10, ge=1, le=50),
+    limit: int = Query(default=10, ge=1, le=200),
     session: AsyncSession = Depends(get_session),
 ):
-    """Cities ranked by peak heat index over the last `hours` of stored data."""
     latest = await session.scalar(select(func.max(Observation.observed_at)))
     if latest is None:
         return []

@@ -1,5 +1,3 @@
-/** Mirrors the HeatWatch API schemas (backend/app/schemas.py). */
-
 export type HeatCategory =
   | "normal"
   | "caution"
@@ -12,6 +10,7 @@ export interface City {
   slug: string;
   name: string;
   state: string;
+  country: string;
   latitude: number;
   longitude: number;
 }
@@ -20,6 +19,8 @@ export interface Observation {
   observed_at: string;
   temperature_c: number;
   humidity_pct: number | null;
+  wind_speed_kmh: number | null;
+  wind_direction_deg: number | null;
   heat_index_c: number;
   heat_category: HeatCategory;
 }

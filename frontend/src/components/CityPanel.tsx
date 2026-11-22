@@ -1,4 +1,10 @@
-import { HEAT_LEVELS, formatDegrees, formatTime } from "@/lib/heat";
+import {
+  HEAT_LEVELS,
+  formatDegrees,
+  formatTime,
+  formatWindDirection,
+  formatWindSpeed,
+} from "@/lib/heat";
 import { useHeatSummary, useTemperature } from "@/lib/queries";
 import type { City, HeatSummary } from "@/lib/types";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -25,12 +31,17 @@ function Conditions({ summary }: { summary: HeatSummary }) {
 
   return (
     <>
-      <p className="detail__temp">{formatDegrees(current.temperature_c)}</p>
-      <div className="detail__feels">
-        <span>Feels like {formatDegrees(current.heat_index_c)}</span>
-        <span className="pill" style={{ background: level.color }}>
-          {level.label}
-        </span>
+      <div className="detail__lead">
+        <div>
+          <span className="metric__label">Current temperature</span>
+          <p className="detail__temp">{formatDegrees(current.temperature_c)}</p>
+        </div>
+        <div className="detail__risk">
+          <span className="pill" style={{ background: level.color }}>
+            {level.label}
+          </span>
+          <span>Feels like {formatDegrees(current.heat_index_c)}</span>
+        </div>
       </div>
       <dl className="stats">
         <div className="stat">
@@ -38,8 +49,24 @@ function Conditions({ summary }: { summary: HeatSummary }) {
           <dd>{current.humidity_pct === null ? "Unknown" : `${Math.round(current.humidity_pct)}%`}</dd>
         </div>
         <div className="stat">
+          <dt>Wind</dt>
+          <dd>
+            {current.wind_speed_kmh == null
+              ? "—"
+              : formatWindSpeed(current.wind_speed_kmh)}
+          </dd>
+        </div>
+        <div className="stat">
           <dt>High today</dt>
           <dd>{todaysHigh === undefined ? "Unknown" : formatDegrees(todaysHigh)}</dd>
+        </div>
+        <div className="stat">
+          <dt>Wind direction</dt>
+          <dd>
+            {current.wind_direction_deg == null
+              ? "—"
+              : `${formatWindDirection(current.wind_direction_deg)} ${Math.round(current.wind_direction_deg)}°`}
+          </dd>
         </div>
       </dl>
       <p className="detail__note">{describeAnomaly(anomaly_c)}</p>
@@ -55,14 +82,15 @@ export function CityPanel({ city, onClose }: Props) {
   const accent = summary.data ? HEAT_LEVELS[summary.data.current.heat_category].color : "#0a84ff";
 
   return (
-    <section className="panel panel--right" aria-label={`${city.name} conditions`}>
+    <section className="detail" aria-label={`${city.name} conditions`}>
       <div className="detail__top">
         <div>
-          <h2 className="panel__title">{city.name}</h2>
-          <p className="panel__subtitle">{city.state}</p>
+          <p className="detail__back">Global heat map</p>
+          <h1>{city.name}</h1>
+          <p>{city.state}, {city.country}</p>
         </div>
         <button type="button" className="icon-button" aria-label="Close" onClick={onClose}>
-          ×
+          <span aria-hidden>×</span>
         </button>
       </div>
 
@@ -83,10 +111,19 @@ export function CityPanel({ city, onClose }: Props) {
       )}
 
       {trend.data && trend.data.length > 0 && (
-        <>
-          <h3 className="detail__chart-title">Last 72 hours</h3>
+        <section className="trend">
+          <div className="trend__header">
+            <div>
+              <h3>72-hour trend</h3>
+              <p>Temperature and how hot it felt</p>
+            </div>
+            <div className="trend__legend" aria-label="Chart legend">
+              <span><i style={{ background: accent }} /> Feels like</span>
+              <span><i className="trend__legend-muted" /> Temperature</span>
+            </div>
+          </div>
           <TrendChart observations={trend.data} accent={accent} scheme={scheme} />
-        </>
+        </section>
       )}
     </section>
   );

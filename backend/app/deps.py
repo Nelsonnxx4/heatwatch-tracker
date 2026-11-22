@@ -9,7 +9,6 @@ async def require_api_key(
     x_api_key: str | None = Header(default=None),
     settings: Settings = Depends(get_settings),
 ) -> None:
-    """Reject requests without a valid X-API-Key header."""
     if x_api_key is not None and any(
         secrets.compare_digest(x_api_key, key) for key in settings.api_key_list
     ):

@@ -10,18 +10,20 @@ export class ApiError extends Error {
   }
 }
 
-/** All requests go through the Next.js proxy, which attaches the API key server-side. */
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`/api${path}`, { signal });
+
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as { detail?: string } | null;
     throw new ApiError(response.status, body?.detail ?? response.statusText);
   }
+
   return (await response.json()) as T;
 }
 
 export const api = {
-  rankings: (signal?: AbortSignal) => get<RankingItem[]>("/rankings/hottest?limit=20", signal),
+  rankings: (signal?: AbortSignal) =>
+    get<RankingItem[]>("/rankings/hottest?limit=200", signal),
   summary: (slug: string, signal?: AbortSignal) =>
     get<HeatSummary>(`/cities/${slug}/heat-summary?days=7`, signal),
   temperature: (slug: string, signal?: AbortSignal) =>

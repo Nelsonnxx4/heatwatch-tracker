@@ -25,7 +25,6 @@ services:
       db:
         condition: service_healthy
 
-  # One-shot job: docker compose run --rm ingest
   ingest:
     build: ./backend
     command: ["python", "-m", "app.ingestion.run"]

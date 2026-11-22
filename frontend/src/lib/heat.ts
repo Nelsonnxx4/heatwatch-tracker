@@ -10,12 +10,20 @@ export const HEAT_LEVELS: Record<HeatCategory, { label: string; color: string }>
 
 export const formatDegrees = (celsius: number): string => `${Math.round(celsius)}°`;
 
-/** The API returns naive UTC timestamps; make that explicit before parsing. */
+export const formatWindSpeed = (kilometresPerHour: number): string =>
+  `${Math.round(kilometresPerHour)} km/h`;
+
+const COMPASS_POINTS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] as const;
+
+export const formatWindDirection = (degrees: number): string => {
+  const normalized = ((degrees % 360) + 360) % 360;
+  return COMPASS_POINTS[Math.round(normalized / 45) % COMPASS_POINTS.length];
+};
+
 export const parseUtc = (iso: string): Date => new Date(`${iso}Z`);
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
 export const formatTime = (iso: string): string => timeFormat.format(parseUtc(iso));
 
-/** Dot diameter in px for a heat index, clamped so extremes stay readable. */
 export const markerSize = (heatIndexC: number): number =>
   Math.min(32, Math.max(14, 14 + (heatIndexC - 25) * 0.6));

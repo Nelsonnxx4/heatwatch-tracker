@@ -12,11 +12,13 @@ logger = logging.getLogger(__name__)
 async def fetch_hourly(
     client: httpx.AsyncClient, latitude: float, longitude: float, past_days: int = 2
 ) -> dict:
-    """Fetch hourly temperature and humidity from Open-Meteo (UTC), with simple retries."""
     params = {
         "latitude": latitude,
         "longitude": longitude,
-        "hourly": "temperature_2m,relative_humidity_2m",
+        "hourly": (
+            "temperature_2m,relative_humidity_2m,"
+            "wind_speed_10m,wind_direction_10m"
+        ),
         "timezone": "UTC",
         "past_days": past_days,
         "forecast_days": 1,
@@ -35,11 +37,12 @@ async def fetch_hourly(
 
 
 def parse_hourly(payload: dict, until: datetime | None = None) -> list[dict]:
-    """Turn an Open-Meteo response into rows, skipping gaps and (optionally) future hours."""
     hourly = payload.get("hourly") or {}
     times = hourly.get("time", [])
     temps = hourly.get("temperature_2m", [])
     humidity = hourly.get("relative_humidity_2m", [])
+    wind_speed = hourly.get("wind_speed_10m", [])
+    wind_direction = hourly.get("wind_direction_10m", [])
 
     rows: list[dict] = []
     for i, stamp in enumerate(times):
@@ -50,11 +53,15 @@ def parse_hourly(payload: dict, until: datetime | None = None) -> list[dict]:
         if until is not None and observed_at > until:
             continue
         hum = humidity[i] if i < len(humidity) else None
+        speed = wind_speed[i] if i < len(wind_speed) else None
+        direction = wind_direction[i] if i < len(wind_direction) else None
         rows.append(
             {
                 "observed_at": observed_at,
                 "temperature_c": float(temp),
                 "humidity_pct": float(hum) if hum is not None else None,
+                "wind_speed_kmh": float(speed) if speed is not None else None,
+                "wind_direction_deg": float(direction) if direction is not None else None,
             }
         )
     return rows

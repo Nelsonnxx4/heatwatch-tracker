@@ -10,7 +10,7 @@ interface Props {
 export function RankingList({ items, selected, onSelect }: Props) {
   return (
     <ul className="ranking">
-      {items.map(({ city, heat_index_max_c, heat_category }) => {
+      {items.map(({ city, heat_index_max_c, heat_category }, index) => {
         const level = HEAT_LEVELS[heat_category];
         return (
           <li key={city.slug}>
@@ -20,11 +20,12 @@ export function RankingList({ items, selected, onSelect }: Props) {
               aria-current={selected === city.slug}
               onClick={() => onSelect(city.slug)}
             >
+              <span className="ranking__rank" aria-hidden>{index + 1}</span>
               <span className="dot" style={{ background: level.color }} aria-hidden />
               <span className="ranking__name">
                 <span className="ranking__city">{city.name}</span>
                 <span className="ranking__meta">
-                  {city.state}, {level.label}
+                  {city.country}, {level.label}
                 </span>
               </span>
               <span className="ranking__value">{formatDegrees(heat_index_max_c)}</span>

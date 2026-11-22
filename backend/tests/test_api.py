@@ -18,6 +18,7 @@ async def test_list_cities_sorted_by_name(client, seeded):
     response = await client.get("/cities")
     assert response.status_code == 200
     assert [c["slug"] for c in response.json()] == ["lagos", "makurdi"]
+    assert {c["country"] for c in response.json()} == {"Nigeria"}
 
 
 async def test_temperature_range_filter(client, seeded):
@@ -58,7 +59,10 @@ async def test_heat_summary(client, seeded):
     body = response.json()
     assert body["city"]["slug"] == "makurdi"
     assert len(body["days"]) == 3
-    assert body["anomaly_c"] is None  # fewer than 7 baseline days
+    assert body["anomaly_c"] is None
+    assert body["current"]["humidity_pct"] == 55.0
+    assert body["current"]["wind_speed_kmh"] == 14.0
+    assert body["current"]["wind_direction_deg"] == 220.0
     assert body["current"]["heat_category"] in {"extreme_caution", "danger", "extreme_danger"}
 
 
